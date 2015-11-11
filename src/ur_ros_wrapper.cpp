@@ -541,6 +541,8 @@ private:
 				"joint_states", 1);
 		ros::Publisher wrench_pub = nh_.advertise<geometry_msgs::WrenchStamped>(
 				"wrench", 1);
+		ros::Publisher tcp_pub = nh_.advertise<sensor_msgs::JointState>( "tcp_states", 1);
+
 		while (ros::ok()) {
 			sensor_msgs::JointState joint_msg;
 			joint_msg.name = robot_.getJointNames();
@@ -570,6 +572,13 @@ private:
 			wrench_msg.wrench.torque.y = tcp_force[4];
 			wrench_msg.wrench.torque.z = tcp_force[5];
 			wrench_pub.publish(wrench_msg);
+
+			sensor_msgs::JointState tcp_msg;
+			tcp_msg.name = joint_msg.name;
+			tcp_msg.header.stamp = joint_msg.header.stamp;
+			tcp_msg.position = robot_.rt_interface_->robot_state_->getToolVectorActual();
+			tcp_msg.velocity = robot_.rt_interface_->robot_state_->getTcpSpeedActual();
+			tcp_pub.publish(tcp_msg);
 
 			robot_.rt_interface_->robot_state_->setDataPublished();
 
